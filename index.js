@@ -2,9 +2,11 @@ const Router = require("./serverFramework/Router");
 const  App = require('./serverFramework/App.js')
 const PORT = process.env.PORT || 3000;
 const sendJsonMiddleware = require("./serverFramework/sendJsonMiddleware");
+const parseBodyMiddleware = require("./serverFramework/bodyParserMiddleware");
 
 const app = new App();
 app.use(sendJsonMiddleware);
+app.use(parseBodyMiddleware);
 const router = new Router();
 
 const users = [
@@ -20,11 +22,20 @@ router.get("/post", (req, res) => {
 });
 router.get("/users", (req, res) => {
     res.sendJson(users);
-
-    // res.writeHead(200, { "Content-Type": "application/json" });
-    // res.end(JSON.stringify(users));
 });
+router.post("/users", async (req, res) => {
+    let user;
+    try {user = await res.parseBody();}
+    catch (error) {
+        res.statusCode = 400;
+        res.end("Bad Request");
+        return;
+    }
 
+    users.push(user);
+    res.sendJson(user);
+
+});
 
 app.addRouter(router);
 
