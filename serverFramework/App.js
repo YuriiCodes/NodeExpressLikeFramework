@@ -5,6 +5,7 @@ module.exports = class App{
     constructor(){
         this.emitter = new EventEmitter();
         this.server = this._createServer();
+        this.middlewares = [];
     }
 
     addRouter(router) {
@@ -14,12 +15,21 @@ module.exports = class App{
                 const handler = endpoint[httpMethod];
                 // Events will be structured like so: [path]:[method], e.g.[/users]:[GET]
                 this.emitter.on(this._getRouterMask(path, httpMethod) , (req, res) => {
+                    // Call all middlewares
+                    this.middlewares.forEach(middleware => {
+                        middleware(req, res);
+                    });
                     handler(req, res);
                 });
 
             })
         })
     }
+
+    use(middleware) {
+        this.middlewares.push(middleware);
+    }
+
     listen (port, callback) {
         this.server.listen(port, callback);
     }
